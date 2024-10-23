@@ -9,6 +9,9 @@ WORKDIR /build
 
 COPY go.mod go.sum main.go ./
 COPY common ./common
+COPY db ./db
+COPY kafka ./kafka
+COPY config ./config
 COPY *.properties ./
 
 RUN ls -al
@@ -34,9 +37,10 @@ COPY --from=builder /dist/main .
 COPY --from=builder /dist/*.properties .
 
 ENV PROFILE=prod \
-    DATABASE_URL=${DATABASE_URL} \
-    DATABASE_NAME=cp \
-    DATABASE_TERRAMAN_ID=${DATABASE_TERRAMAN_ID} \
-    DATABASE_TERRAMAN_PASSWORD=${DATABASE_TERRAMAN_PASSWORD}
+    DATABASE_HOST=${DATABASE_HOST} \
+    DATABASE_NAME=${DATABASE_NAME} \
+    DATABASE_USER=${DATABASE_USER} \
+    DATABASE_PASSWORD=${DATABASE_PASSWORD} \
+    DATABASE_PORT=${DATABASE_PORT}
 
 ENTRYPOINT ["/main"]

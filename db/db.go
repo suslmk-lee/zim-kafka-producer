@@ -3,10 +3,9 @@ package db
 import (
 	"context"
 	"fmt"
-	"time"
-
 	"github.com/jackc/pgx/v4/pgxpool"
-	"zim-kafka-producer/common"
+	"time"
+	"zim-kafka-producer/config"
 )
 
 // IoTData 구조체 정의
@@ -22,7 +21,7 @@ type IoTData struct {
 
 // PostgreSQL 연결 풀 생성
 func ConnectToDB() (*pgxpool.Pool, error) {
-	dbURL := getDataSource()
+	dbURL := config.GetDataSource() // 환경에 따라 설정 값을 가져옴
 
 	config, err := pgxpool.ParseConfig(dbURL)
 	if err != nil {
@@ -59,14 +58,4 @@ func ReadIoTDataBatch(pool *pgxpool.Pool) ([]IoTData, error) {
 	}
 
 	return dataBatch, nil
-}
-
-// 데이터베이스 연결 정보 구성
-func getDataSource() string {
-	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
-		common.ConfInfo["database.user"],
-		common.ConfInfo["database.password"],
-		common.ConfInfo["database.host"],
-		common.ConfInfo["database.port"],
-		common.ConfInfo["database.name"])
 }

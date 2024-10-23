@@ -4,19 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+
 	"github.com/segmentio/kafka-go"
-	"zim-kafka-producer/common"
+	"zim-kafka-producer/config"
 	"zim-kafka-producer/db"
 )
 
 // Kafka Producer 생성 함수
 func NewProducer() (*kafka.Writer, error) {
-	topic := common.ConfInfo["kafka.topic"]
-	broker := common.ConfInfo["kafka.broker"]
-
-	if topic == "" || broker == "" {
-		return nil, fmt.Errorf("Kafka topic or broker is not configured")
-	}
+	topic := config.GetConfig("KAFKA_TOPIC", "iot-data-topic")
+	broker := config.GetConfig("KAFKA_BROKER", "localhost:9092")
 
 	writer := kafka.NewWriter(kafka.WriterConfig{
 		Brokers:  []string{broker},

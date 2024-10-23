@@ -2,11 +2,12 @@ package main
 
 import (
 	"context"
-	"github.com/sirupsen/logrus"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/sirupsen/logrus"
 	"zim-kafka-producer/db"
 	"zim-kafka-producer/kafka"
 )
