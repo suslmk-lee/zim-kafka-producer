@@ -3,3 +3,6 @@ database.name=
 database.user=postgres
 database.password=master
 database.port=5432
+
+kafka.topic=a1b2
+kafka.brokers=localhost:9092
