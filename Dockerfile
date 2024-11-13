@@ -12,7 +12,6 @@ COPY common ./common
 COPY db ./db
 COPY kafka ./kafka
 COPY config ./config
-COPY *.properties ./
 
 RUN ls -al
 RUN go mod download
@@ -27,8 +26,6 @@ RUN go build -o main .
 WORKDIR /dist
 
 RUN cp /build/main .
-
-RUN cp /build/*.properties .
 
 FROM scratch
 
