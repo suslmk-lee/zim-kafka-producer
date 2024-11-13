@@ -35,11 +35,11 @@ func getProfile() string {
 
 // GetDataSource 함수 - PostgreSQL 연결 문자열을 가져오는 함수
 func GetDataSource() string {
-	databaseUser := GetConfig("DATABASE_USER", "default_user")
-	databasePassword := GetConfig("DATABASE_PASSWORD", "default_password")
-	databaseHost := GetConfig("DATABASE_HOST", "localhost")
-	databasePort := GetConfig("DATABASE_PORT", "5432")
-	databaseName := GetConfig("DATABASE_NAME", "iot_db")
+	databaseUser := GetConfig("database.user", "default_user")
+	databasePassword := GetConfig("database.password", "default_password")
+	databaseHost := GetConfig("database.host", "localhost")
+	databasePort := GetConfig("database.port", "5432")
+	databaseName := GetConfig("database.name", "iot_db")
 
 	// PostgreSQL 데이터 소스 문자열 구성
 	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",

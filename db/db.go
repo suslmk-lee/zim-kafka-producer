@@ -10,18 +10,46 @@ import (
 
 // IoTData 구조체 정의
 type IoTData struct {
-	Humidity       float64   `json:"humidity"`
-	Temperature    float64   `json:"temperature"`
-	LightQuantity  float64   `json:"light_quantity"`
-	BatteryVoltage float64   `json:"battery_voltage"`
-	SolarVoltage   float64   `json:"solar_voltage"`
-	LoadAmpere     float64   `json:"load_ampere"`
-	Timestamp      time.Time `json:"timestamp"`
+	MessageID string    `json:"message_id"`
+	Device    string    `json:"Device"`
+	Timestamp time.Time `json:"Timestamp"`
+	ProVer    int       `json:"ProVer"`
+	MinorVer  int       `json:"MinorVer"`
+	SN        int64     `json:"SN"`
+	Model     string    `json:"model"`
+	Status    Status    `json:"Status"`
+}
+
+// Status 구조체 정의
+type Status struct {
+	Tyield         float64 `json:"Tyield"`
+	Dyield         float64 `json:"Dyield"`
+	PF             float64 `json:"PF"`
+	Pmax           int     `json:"Pmax"`
+	Pac            int     `json:"Pac"`
+	Sac            int     `json:"Sac"`
+	Uab            int     `json:"Uab"`
+	Ubc            int     `json:"Ubc"`
+	Uca            int     `json:"Uca"`
+	Ia             int     `json:"Ia"`
+	Ib             int     `json:"Ib"`
+	Ic             int     `json:"Ic"`
+	Freq           int     `json:"Freq"`
+	Tmod           float64 `json:"Tmod"`
+	Tamb           float64 `json:"Tamb"`
+	Mode           string  `json:"Mode"`
+	Qac            int     `json:"Qac"`
+	BusCapacitance float64 `json:"BusCapacitance"`
+	AcCapacitance  float64 `json:"AcCapacitance"`
+	Pdc            float64 `json:"Pdc"`
+	PmaxLim        float64 `json:"PmaxLim"`
+	SmaxLim        float64 `json:"SmaxLim"`
 }
 
 // PostgreSQL 연결 풀 생성
 func ConnectToDB() (*pgxpool.Pool, error) {
 	dbURL := config.GetDataSource() // 환경에 따라 설정 값을 가져옴
+	fmt.Println("dbURL: ", dbURL)
 
 	config, err := pgxpool.ParseConfig(dbURL)
 	if err != nil {
@@ -39,7 +67,11 @@ func ConnectToDB() (*pgxpool.Pool, error) {
 // PostgreSQL에서 여러 레코드를 읽어오는 함수
 func ReadIoTDataBatch(pool *pgxpool.Pool) ([]IoTData, error) {
 	rows, err := pool.Query(context.Background(), `
-		SELECT humidity, temperature, light_quantity, battery_voltage, solar_voltage, load_ampere, timestamp
+		SELECT 
+			device, timestamp, pro_ver, minor_ver, sn, model, 
+			tyield, dyield, pf, pmax, pac, sac, uab, ubc, uca, 
+			ia, ib, ic, freq, tmod, tamb, mode, qac, bus_capacitance, 
+			ac_capacitance, pdc, pmax_lim, smax_lim
 		FROM iot_data
 		ORDER BY timestamp DESC LIMIT 10`)
 	if err != nil {
@@ -50,10 +82,18 @@ func ReadIoTDataBatch(pool *pgxpool.Pool) ([]IoTData, error) {
 	var dataBatch []IoTData
 	for rows.Next() {
 		var data IoTData
-		err := rows.Scan(&data.Humidity, &data.Temperature, &data.LightQuantity, &data.BatteryVoltage, &data.SolarVoltage, &data.LoadAmpere, &data.Timestamp)
+		var status Status
+		err := rows.Scan(
+			&data.Device, &data.Timestamp, &data.ProVer, &data.MinorVer, &data.SN, &data.Model,
+			&status.Tyield, &status.Dyield, &status.PF, &status.Pmax, &status.Pac, &status.Sac,
+			&status.Uab, &status.Ubc, &status.Uca, &status.Ia, &status.Ib, &status.Ic,
+			&status.Freq, &status.Tmod, &status.Tamb, &status.Mode, &status.Qac,
+			&status.BusCapacitance, &status.AcCapacitance, &status.Pdc, &status.PmaxLim, &status.SmaxLim,
+		)
 		if err != nil {
 			return nil, fmt.Errorf("Error scanning row: %v", err)
 		}
+		data.Status = status // 중첩 구조체에 상태 할당
 		dataBatch = append(dataBatch, data)
 	}
 
