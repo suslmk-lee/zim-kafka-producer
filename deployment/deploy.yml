@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zim-producer-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zim-producer-deployment
+  template:
+    metadata:
+      labels:
+        app: zim-producer-deployment
+    spec:
+      containers:
+        - name: zim-producer-deployment
+          image: 44ce789b-kr1-registry.container.nhncloud.com/container-platform-registry/zim-kafka-producer:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: PROFILE
+              value: "prod"
+      imagePullSecrets:
+        - name: ncr
