@@ -27,6 +27,7 @@ func GetConfig(key, defaultValue string) string {
 // getProfile 함수 - 현재 프로파일을 결정하는 함수
 func getProfile() string {
 	profile := os.Getenv("PROFILE")
+	fmt.Println("PROFILE: ", profile)
 	if profile == "" {
 		return "local" // 기본값은 로컬 프로파일
 	}
