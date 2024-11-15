@@ -12,9 +12,14 @@ type AppConfigProperties map[string]string
 var ConfInfo AppConfigProperties
 
 func init() {
-	_, err := ReadPropertiesFile("config.properties")
-	if err != nil {
-		return
+	// config.properties 파일이 존재할 때만 읽어들임
+	if _, err := os.Stat("config.properties"); err == nil {
+		_, err := ReadPropertiesFile("config.properties")
+		if err != nil {
+			log.Println("Error reading properties file:", err)
+		}
+	} else {
+		log.Println("config.properties file not found, skipping configuration loading")
 	}
 }
 

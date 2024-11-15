@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  DATABASE_HOST: "133.186.209.209"
+  DATABASE_PORT: "31763"
+  DATABASE_NAME: "cp-db"

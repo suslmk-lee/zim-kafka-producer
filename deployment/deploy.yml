@@ -20,5 +20,10 @@ spec:
           env:
             - name: PROFILE
               value: "prod"
+          envFrom:
+          - configMapRef:
+              name: app-config
+          - secretRef:
+              name: db-credentials
       imagePullSecrets:
         - name: ncr
