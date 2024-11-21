@@ -15,10 +15,12 @@ import (
 // Kafka Producer 생성 함수
 func NewProducer() (*kafka.Writer, error) {
 	topic := config.GetConfig("KAFKA_TOPIC", "iot-data-topic")
-	broker := config.GetConfig("KAFKA_BROKER", "localhost:9092")
+	brokerHost := config.GetConfig("KAFKA_HOST", "localhost")
+	brokerPort := config.GetConfig("KAFKA_PORT", "9092")
+	brokerUrl := fmt.Sprintf("%s:%s", brokerHost, brokerPort)
 
 	writer := kafka.NewWriter(kafka.WriterConfig{
-		Brokers:  []string{broker},
+		Brokers:  []string{brokerUrl},
 		Topic:    topic,
 		Balancer: &kafka.LeastBytes{},
 		// 모든 복제본에 메시지가 기록될 때까지 대기하도록 설정 (-1)
