@@ -12,6 +12,14 @@ spec:
       labels:
         app: zim-producer-deployment
     spec:
+      initContainers:
+        - name: create-kafka-topic
+          image: confluentinc/cp-kafka:latest
+          command:
+            - sh
+            - -c
+            - |
+              kafka-topics --create --topic cp-db-topic --bootstrap-server kafka-broker.kafka:9092 --partitions 3 --replication-factor 1 || echo "Topic already exists"
       containers:
         - name: zim-producer-deployment
           image: 44ce789b-kr1-registry.container.nhncloud.com/container-platform-registry/zim-kafka-producer:latest
