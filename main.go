@@ -50,10 +50,18 @@ func main() {
 				logger.Info("Shutting down producer service...")
 				return
 			default:
-				dataBatch, err := db.ReadIoTDataBatch(dbPool)
+				// 처리되지 않은 데이터 읽기
+				dataBatch, err := db.ReadUnprocessedData(dbPool)
 				if err != nil {
 					logger.Errorf("Error reading data from DB: %v\n", err)
 					time.Sleep(5 * time.Second)
+					continue
+				}
+
+				// 데이터가 없으면 스킵
+				if len(dataBatch) == 0 {
+					logger.Info("No unprocessed data available")
+					time.Sleep(1 * time.Second)
 					continue
 				}
 
@@ -65,6 +73,10 @@ func main() {
 							logger.Errorf("Error sending data to Kafka: %v\n", err)
 						} else {
 							logger.Infof("Data sent to Kafka at %v\n", d.Timestamp)
+							// 메시지가 성공적으로 전송되었음을 데이터베이스에 업데이트
+							if err := db.MarkDataAsSent(dbPool, d); err != nil {
+								logger.Errorf("Error updating sent status: %v\n", err)
+							}
 						}
 					}(data)
 				}

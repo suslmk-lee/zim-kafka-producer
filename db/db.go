@@ -65,7 +65,7 @@ func ConnectToDB() (*pgxpool.Pool, error) {
 }
 
 // PostgreSQL에서 여러 레코드를 읽어오는 함수
-func ReadIoTDataBatch(pool *pgxpool.Pool) ([]IoTData, error) {
+func ReadUnprocessedData(pool *pgxpool.Pool) ([]IoTData, error) {
 	rows, err := pool.Query(context.Background(), `
 		SELECT 
 			device, timestamp, pro_ver, minor_ver, sn, model, 
@@ -73,7 +73,9 @@ func ReadIoTDataBatch(pool *pgxpool.Pool) ([]IoTData, error) {
 			ia, ib, ic, freq, tmod, tamb, mode, qac, bus_capacitance, 
 			ac_capacitance, pdc, pmax_lim, smax_lim
 		FROM iot_data
-		ORDER BY timestamp DESC LIMIT 10`)
+		WHERE is_sent = FALSE
+		ORDER BY timestamp ASC
+		LIMIT 10`)
 	if err != nil {
 		return nil, fmt.Errorf("Error querying data: %v", err)
 	}
@@ -93,9 +95,17 @@ func ReadIoTDataBatch(pool *pgxpool.Pool) ([]IoTData, error) {
 		if err != nil {
 			return nil, fmt.Errorf("Error scanning row: %v", err)
 		}
-		data.Status = status // 중첩 구조체에 상태 할당
+		data.Status = status
 		dataBatch = append(dataBatch, data)
 	}
 
 	return dataBatch, nil
+}
+
+func MarkDataAsSent(pool *pgxpool.Pool, data IoTData) error {
+	_, err := pool.Exec(context.Background(), `
+		UPDATE iot_data
+		SET is_sent = TRUE
+		WHERE timestamp = $1`, data.Timestamp)
+	return err
 }

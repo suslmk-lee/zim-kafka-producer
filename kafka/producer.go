@@ -14,18 +14,19 @@ import (
 
 // Kafka Producer 생성 함수
 func NewProducer() (*kafka.Writer, error) {
+	// Kafka 토픽 및 브로커 URL 설정
 	topic := config.GetConfig("KAFKA_TOPIC", "iot-data-topic")
 	brokerHost := config.GetConfig("KAFKA_HOST", "localhost")
 	brokerPort := config.GetConfig("KAFKA_PORT", "9092")
-	brokerUrl := fmt.Sprintf("%s:%s", brokerHost, brokerPort)
+	brokerURL := fmt.Sprintf("%s:%s", brokerHost, brokerPort)
 
+	// Kafka Writer 설정
 	writer := kafka.NewWriter(kafka.WriterConfig{
-		Brokers:  []string{brokerUrl},
-		Topic:    topic,
-		Balancer: &kafka.LeastBytes{},
-		// 모든 복제본에 메시지가 기록될 때까지 대기하도록 설정 (-1)
-		RequiredAcks: -1,
-		Async:        false, // 동기 전송 사용
+		Brokers:      []string{brokerURL},
+		Topic:        topic,
+		Balancer:     &kafka.LeastBytes{},
+		BatchSize:    10,                     // Batch 처리 크기 설정
+		BatchTimeout: 500 * time.Millisecond, // Batch 타임아웃 설정
 	})
 
 	return writer, nil
@@ -39,23 +40,32 @@ func SendDataToKafka(ctx context.Context, writer *kafka.Writer, data db.IoTData)
 	// 타임스탬프를 UTC 형식으로 변환
 	data.Timestamp = data.Timestamp.UTC()
 
+	// 메시지 직렬화
 	message, err := json.Marshal(data)
 	if err != nil {
 		return fmt.Errorf("Error marshalling data to JSON: %v", err)
 	}
 
-	// 전송 재시도 로직
-	for retries := 0; retries < 3; retries++ {
+	// Kafka 메시지 전송 (재시도 포함)
+	const maxRetries = 3
+	var retryInterval = 500 * time.Millisecond
+	for attempt := 1; attempt <= maxRetries; attempt++ {
 		err = writer.WriteMessages(ctx, kafka.Message{
-			Key:   []byte(data.MessageID), // 고유 MessageID를 Key로 사용하여 중복 방지
+			Key:   []byte(data.MessageID), // 메시지 고유 ID를 Key로 사용
 			Value: message,
 		})
 		if err == nil {
+			// 전송 성공 시 로그 출력 및 종료
+			fmt.Printf("Message sent to Kafka (MessageID: %s, Timestamp: %s)\n", data.MessageID, data.Timestamp)
 			return nil
 		}
-		// 전송 실패 시 대기 후 재시도
-		time.Sleep(500 * time.Millisecond)
+
+		// 전송 실패 시 재시도
+		fmt.Printf("Retry %d/%d: Failed to send message (MessageID: %s, Error: %v)\n", attempt, maxRetries, data.MessageID, err)
+		time.Sleep(retryInterval)
+		retryInterval *= 2 // 지수 백오프 적용
 	}
 
-	return fmt.Errorf("Failed to send data to Kafka after retries: %v", err)
+	// 최대 재시도 후 실패
+	return fmt.Errorf("Failed to send message to Kafka after %d attempts: %v", maxRetries, err)
 }
