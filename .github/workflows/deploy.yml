@@ -12,7 +12,7 @@ jobs:
     env:
       IMAGE_NAME: "zim-kafka-producer"
       REGISTRY: "44ce789b-kr1-registry.container.nhncloud.com/container-platform-registry"
-      NAMESPACE: "edge-test"
+      NAMESPACE: "kafka"
       DEPLOYMENT_NAME: "zim-producer-deployment"
       CLUSTER_NAME: "dev-cluster"
       KUBECONFIG_DATA: ${{ secrets.KUBECONFIG_DATA }}
