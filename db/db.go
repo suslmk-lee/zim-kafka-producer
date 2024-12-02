@@ -25,16 +25,16 @@ type Status struct {
 	Tyield         float64 `json:"Tyield"`
 	Dyield         float64 `json:"Dyield"`
 	PF             float64 `json:"PF"`
-	Pmax           int     `json:"Pmax"`
-	Pac            int     `json:"Pac"`
-	Sac            int     `json:"Sac"`
-	Uab            int     `json:"Uab"`
-	Ubc            int     `json:"Ubc"`
-	Uca            int     `json:"Uca"`
-	Ia             int     `json:"Ia"`
-	Ib             int     `json:"Ib"`
-	Ic             int     `json:"Ic"`
-	Freq           int     `json:"Freq"`
+	Pmax           float64 `json:"Pmax"`
+	Pac            float64 `json:"Pac"`
+	Sac            float64 `json:"Sac"`
+	Uab            float64 `json:"Uab"`
+	Ubc            float64 `json:"Ubc"`
+	Uca            float64 `json:"Uca"`
+	Ia             float64 `json:"Ia"`
+	Ib             float64 `json:"Ib"`
+	Ic             float64 `json:"Ic"`
+	Freq           float64 `json:"Freq"`
 	Tmod           float64 `json:"Tmod"`
 	Tamb           float64 `json:"Tamb"`
 	Mode           string  `json:"Mode"`
