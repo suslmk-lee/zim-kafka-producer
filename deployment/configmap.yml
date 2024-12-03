@@ -6,6 +6,6 @@ data:
   DATABASE_HOST: "133.186.220.226"
   DATABASE_PORT: "31432"
   DATABASE_NAME: "cp-db"
-  KAFKA_HOST: "kafka-broker.kafka.svc"
-  KAFKA_PORT: "9092"
+  KAFKA_HOST: "133.186.220.226"
+  KAFKA_PORT: "31092"
   KAFKA_TOPIC: "cp-db-topic"

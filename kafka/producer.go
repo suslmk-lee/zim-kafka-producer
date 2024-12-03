@@ -25,9 +25,11 @@ func NewProducer() (*kafka.Writer, error) {
 	writer := kafka.NewWriter(kafka.WriterConfig{
 		Brokers:      []string{brokerURL},
 		Topic:        topic,
-		Balancer:     &kafka.LeastBytes{},
-		BatchSize:    10,                     // Batch 처리 크기 설정
-		BatchTimeout: 500 * time.Millisecond, // Batch 타임아웃 설정
+		Balancer:     &kafka.RoundRobin{}, // Changed to RoundRobin for better partition distribution
+		BatchSize:    1,                   // Reduced batch size for testing
+		BatchTimeout: 100 * time.Millisecond,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
 	})
 
 	return writer, nil
