@@ -28,6 +28,13 @@ func NewProducer() (*kafka.Writer, error) {
 		Balancer:     &kafka.LeastBytes{},
 		BatchSize:    10,                     // Batch 처리 크기 설정
 		BatchTimeout: 500 * time.Millisecond, // Batch 타임아웃 설정
+		Dialer: &kafka.Dialer{
+			Timeout:   5 * time.Second,  // 연결 타임아웃
+			KeepAlive: 30 * time.Second, // TCP KeepAlive 간격
+		},
+		ReadTimeout:  5 * time.Second,  // 읽기 타임아웃
+		WriteTimeout: 5 * time.Second,  // 쓰기 타임아웃
+		MaxAttempts: 3,                // 최대 재시도 횟수
 	})
 
 	return writer, nil
@@ -36,7 +43,12 @@ func NewProducer() (*kafka.Writer, error) {
 // GetPartitionInfo Kafka 토픽의 파티션 정보를 조회하는 함수
 func GetPartitionInfo(ctx context.Context, brokerURL string, topic string) error {
 	// Kafka 연결 설정
-	conn, err := kafka.DialContext(ctx, "tcp", brokerURL)
+	dialer := &kafka.Dialer{
+		Timeout:   5 * time.Second,  // 연결 타임아웃
+		KeepAlive: 30 * time.Second, // TCP KeepAlive 간격
+	}
+	
+	conn, err := dialer.DialContext(ctx, "tcp", brokerURL)
 	if err != nil {
 		return fmt.Errorf("failed to dial leader: %v", err)
 	}

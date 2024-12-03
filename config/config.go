@@ -3,7 +3,13 @@ package config
 import (
 	"fmt"
 	"os"
+	"sync"
 	"zim-kafka-producer/common"
+)
+
+var (
+	profile     string
+	profileOnce sync.Once
 )
 
 // GetConfig 함수 - 환경 설정을 가져오는 함수 (프로파일에 따라 환경 변수를 가져오거나 common을 사용)
@@ -26,11 +32,13 @@ func GetConfig(key, defaultValue string) string {
 
 // getProfile 함수 - 현재 프로파일을 결정하는 함수
 func getProfile() string {
-	profile := os.Getenv("PROFILE")
-	fmt.Println("PROFILE: ", profile)
-	if profile == "" {
-		return "local" // 기본값은 로컬 프로파일
-	}
+	profileOnce.Do(func() {
+		profile = os.Getenv("PROFILE")
+		fmt.Println("PROFILE: ", profile)
+		if profile == "" {
+			profile = "local" // 기본값은 로컬 프로파일
+		}
+	})
 	return profile
 }
 
