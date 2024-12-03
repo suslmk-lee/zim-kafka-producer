@@ -6,17 +6,18 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
-	"github.com/segmentio/kafka-go"
 	"zim-kafka-producer/config"
 	"zim-kafka-producer/db"
+
+	"github.com/google/uuid"
+	"github.com/segmentio/kafka-go"
 )
 
 // Kafka Producer 생성 함수
 func NewProducer() (*kafka.Writer, error) {
 	// Kafka 토픽 및 브로커 URL 설정
-	topic := config.GetConfig("KAFKA_TOPIC", "iot-data-topic")
-	brokerHost := config.GetConfig("KAFKA_HOST", "localhost")
+	topic := config.GetConfig("KAFKA_TOPIC", "cp-db-topic")
+	brokerHost := config.GetConfig("KAFKA_HOST", "kafka-broker.kafka.svc")
 	brokerPort := config.GetConfig("KAFKA_PORT", "9092")
 	brokerURL := fmt.Sprintf("%s:%s", brokerHost, brokerPort)
 
@@ -32,8 +33,52 @@ func NewProducer() (*kafka.Writer, error) {
 	return writer, nil
 }
 
+// GetPartitionInfo Kafka 토픽의 파티션 정보를 조회하는 함수
+func GetPartitionInfo(ctx context.Context, brokerURL string, topic string) error {
+	// Kafka 연결 설정
+	conn, err := kafka.DialContext(ctx, "tcp", brokerURL)
+	if err != nil {
+		return fmt.Errorf("failed to dial leader: %v", err)
+	}
+	defer conn.Close()
+
+	// 파티션 정보 조회
+	partitions, err := conn.ReadPartitions(topic)
+	if err != nil {
+		return fmt.Errorf("failed to read partitions: %v", err)
+	}
+
+	// 파티션 정보 출력
+	fmt.Printf("\n=== Topic: %s ===\n", topic)
+	for _, p := range partitions {
+		fmt.Printf("Partition: %d\n", p.ID)
+		fmt.Printf("  Leader: %d at %s\n", p.Leader.ID, p.Leader.Host)
+		fmt.Printf("  Replicas: ")
+		for _, replica := range p.Replicas {
+			fmt.Printf("%d ", replica.ID)
+		}
+		fmt.Printf("\n  ISR: ")
+		for _, isr := range p.Isr {
+			fmt.Printf("%d ", isr.ID)
+		}
+		fmt.Printf("\n\n")
+	}
+
+	return nil
+}
+
 // Kafka로 IoT 데이터를 전송하는 함수
 func SendDataToKafka(ctx context.Context, writer *kafka.Writer, data db.IoTData) error {
+	// 파티션 정보 확인
+	brokerHost := config.GetConfig("KAFKA_HOST", "kafka-broker.kafka.svc")
+	brokerPort := config.GetConfig("KAFKA_PORT", "9092")
+	brokerURL := fmt.Sprintf("%s:%s", brokerHost, brokerPort)
+	topic := config.GetConfig("KAFKA_TOPIC", "cp-db-topic")
+
+	if err := GetPartitionInfo(ctx, brokerURL, topic); err != nil {
+		fmt.Printf("Warning: Failed to get partition info: %v\n", err)
+	}
+
 	// 고유 MessageID 생성 및 할당
 	data.MessageID = uuid.NewString()
 
