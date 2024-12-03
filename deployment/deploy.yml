@@ -19,7 +19,7 @@ spec:
             - sh
             - -c
             - |
-              kafka-topics --create --topic cp-db-topic --bootstrap-server kafka-broker.kafka.svc:9092 --partitions 3 --replication-factor 1 || echo "Topic already exists"
+              kafka-topics --create --topic cp-db-topic --bootstrap-server kafka-broker.kafka:9092 --partitions 3 --replication-factor 1 || echo "Topic already exists"
       containers:
         - name: zim-producer-deployment
           image: 44ce789b-kr1-registry.container.nhncloud.com/container-platform-registry/zim-kafka-producer:latest
