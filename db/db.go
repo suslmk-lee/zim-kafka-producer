@@ -3,21 +3,21 @@ package db
 import (
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/v4/pgxpool"
-	"time"
 	"zim-kafka-producer/config"
+
+	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 // IoTData 구조체 정의
 type IoTData struct {
-	MessageID string    `json:"message_id"`
-	Device    string    `json:"Device"`
-	Timestamp time.Time `json:"Timestamp"`
-	ProVer    int       `json:"ProVer"`
-	MinorVer  int       `json:"MinorVer"`
-	SN        int64     `json:"SN"`
-	Model     string    `json:"model"`
-	Status    Status    `json:"Status"`
+	MessageID string `json:"message_id"`
+	Device    string `json:"Device"`
+	Timestamp int64  `json:"Timestamp"`
+	ProVer    int    `json:"ProVer"`
+	MinorVer  int    `json:"MinorVer"`
+	SN        int64  `json:"SN"`
+	Model     string `json:"model"`
+	Status    Status `json:"Status"`
 }
 
 // Status 구조체 정의
@@ -85,8 +85,9 @@ func ReadUnprocessedData(pool *pgxpool.Pool) ([]IoTData, error) {
 	for rows.Next() {
 		var data IoTData
 		var status Status
+		var timestamp int64
 		err := rows.Scan(
-			&data.Device, &data.Timestamp, &data.ProVer, &data.MinorVer, &data.SN, &data.Model,
+			&data.Device, &timestamp, &data.ProVer, &data.MinorVer, &data.SN, &data.Model,
 			&status.Tyield, &status.Dyield, &status.PF, &status.Pmax, &status.Pac, &status.Sac,
 			&status.Uab, &status.Ubc, &status.Uca, &status.Ia, &status.Ib, &status.Ic,
 			&status.Freq, &status.Tmod, &status.Tamb, &status.Mode, &status.Qac,
@@ -95,6 +96,7 @@ func ReadUnprocessedData(pool *pgxpool.Pool) ([]IoTData, error) {
 		if err != nil {
 			return nil, fmt.Errorf("Error scanning row: %v", err)
 		}
+		data.Timestamp = timestamp
 		data.Status = status
 		dataBatch = append(dataBatch, data)
 	}

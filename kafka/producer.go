@@ -40,9 +40,6 @@ func SendDataToKafka(ctx context.Context, writer *kafka.Writer, data db.IoTData)
 	// 고유 MessageID 생성 및 할당
 	data.MessageID = uuid.NewString()
 
-	// 타임스탬프를 UTC 형식으로 변환
-	data.Timestamp = data.Timestamp.UTC()
-
 	// 메시지 직렬화
 	message, err := json.Marshal(data)
 	if err != nil {
@@ -59,7 +56,7 @@ func SendDataToKafka(ctx context.Context, writer *kafka.Writer, data db.IoTData)
 		})
 		if err == nil {
 			// 전송 성공 시 로그 출력 및 종료
-			fmt.Printf("Message sent to Kafka (MessageID: %s, Timestamp: %s)\n", data.MessageID, data.Timestamp)
+			fmt.Printf("Message sent to Kafka (MessageID: %s, Timestamp: %d)\n", data.MessageID, data.Timestamp)
 			return nil
 		}
 
