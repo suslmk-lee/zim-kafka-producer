@@ -40,9 +40,13 @@ func SendDataToKafka(ctx context.Context, writer *kafka.Writer, data db.IoTData)
 	// 고유 MessageID 생성 및 할당
 	data.MessageID = uuid.NewString()
 
+	// 데이터 로깅
+	fmt.Println("Sending data to Kafka - MessageID: %s, Data: %+v", data.MessageID, data)
+
 	// 메시지 직렬화
 	message, err := json.Marshal(data)
 	if err != nil {
+		fmt.Println("Error marshalling data to JSON: %v", err)
 		return fmt.Errorf("Error marshalling data to JSON: %v", err)
 	}
 
