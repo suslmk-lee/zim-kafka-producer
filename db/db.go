@@ -10,18 +10,13 @@ import (
 
 // IoTData 구조체 정의
 type IoTData struct {
-	MessageID string `json:"message_id"`
-	Device    string `json:"Device"`
-	Timestamp int64  `json:"Timestamp"`
-	ProVer    int    `json:"ProVer"`
-	MinorVer  int    `json:"MinorVer"`
-	SN        int64  `json:"SN"`
-	Model     string `json:"model"`
-	Status    Status `json:"Status"`
-}
-
-// Status 구조체 정의
-type Status struct {
+	MessageID      string  `json:"message_id"`
+	Device         string  `json:"Device"`
+	Timestamp      int64   `json:"Timestamp"`
+	ProVer         int     `json:"ProVer"`
+	MinorVer       int     `json:"MinorVer"`
+	SN             int64   `json:"SN"`
+	Model          string  `json:"model"`
 	Tyield         float64 `json:"Tyield"`
 	Dyield         float64 `json:"Dyield"`
 	PF             float64 `json:"PF"`
@@ -84,20 +79,18 @@ func ReadUnprocessedData(pool *pgxpool.Pool) ([]IoTData, error) {
 	var dataBatch []IoTData
 	for rows.Next() {
 		var data IoTData
-		var status Status
 		var timestamp int64
 		err := rows.Scan(
 			&data.Device, &timestamp, &data.ProVer, &data.MinorVer, &data.SN, &data.Model,
-			&status.Tyield, &status.Dyield, &status.PF, &status.Pmax, &status.Pac, &status.Sac,
-			&status.Uab, &status.Ubc, &status.Uca, &status.Ia, &status.Ib, &status.Ic,
-			&status.Freq, &status.Tmod, &status.Tamb, &status.Mode, &status.Qac,
-			&status.BusCapacitance, &status.AcCapacitance, &status.Pdc, &status.PmaxLim, &status.SmaxLim,
+			&data.Tyield, &data.Dyield, &data.PF, &data.Pmax, &data.Pac, &data.Sac,
+			&data.Uab, &data.Ubc, &data.Uca, &data.Ia, &data.Ib, &data.Ic,
+			&data.Freq, &data.Tmod, &data.Tamb, &data.Mode, &data.Qac,
+			&data.BusCapacitance, &data.AcCapacitance, &data.Pdc, &data.PmaxLim, &data.SmaxLim,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("Error scanning row: %v", err)
 		}
 		data.Timestamp = timestamp
-		data.Status = status
 		dataBatch = append(dataBatch, data)
 	}
 
